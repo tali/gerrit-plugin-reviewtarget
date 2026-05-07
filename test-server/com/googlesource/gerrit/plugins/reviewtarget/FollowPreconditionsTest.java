@@ -73,6 +73,8 @@ public class FollowPreconditionsTest {
 
   @Test
   public void onReviewBranch_matchesFolder() {
+    // FastIgnoreRule treats a pattern without a trailing slash as matching both
+    // a file and a directory with that name, so "review" matches "review/1".
     whenOnBranch("review/1");
     when(cfg.getReviewBranch()).thenReturn("refs/heads/review");
     assertTrue(preconditions().onReviewBranch(change));

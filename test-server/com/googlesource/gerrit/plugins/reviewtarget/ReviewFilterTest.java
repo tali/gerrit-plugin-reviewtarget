@@ -25,6 +25,18 @@ public class ReviewFilterTest {
   }
 
   @Test
+  public void matchAll_emptyFilter() {
+    assertThat(new ReviewFilter("").matchAll()).isTrue();
+    assertThat(new ReviewFilter(java.util.List.of()).matchAll()).isTrue();
+  }
+
+  @Test
+  public void matchAll_nonEmptyFilter() {
+    assertThat(new ReviewFilter("src").matchAll()).isFalse();
+    assertThat(new ReviewFilter(java.util.List.of("src")).matchAll()).isFalse();
+  }
+
+  @Test
   public void isPathToBeReviewed_2() {
     var reviewFilter = new ReviewFilter("a.*\n!*.b");
     assertThat(reviewFilter.isPathToBeReviewed("x.x", false))
