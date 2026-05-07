@@ -23,7 +23,6 @@ import {PopupPluginApi} from '@gerritcodereview/typescript-api/popup';
 import {ChangeInfo} from '@gerritcodereview/typescript-api/rest-api';
 
 import {changeFollowPost, FollowInfo} from './api';
-import {BindValueChangeEvent} from './types';
 import {fireReload} from './event-util';
 import './gr-show-files';
 
@@ -187,16 +186,11 @@ export class SelectReviewTargetDialog extends LitElement {
                   Review-Target
                 </gr-tooltip-content>
               </span>
-              <iron-input
-                .bindValue=${this.reviewTarget}
-                @bind-value-changed=${(e: BindValueChangeEvent) => {
-                  if (e.detail.value) {
-                    this.reviewTarget = e.detail.value;
-                  }
-                }}
+              <input
+                .value=${this.reviewTarget}
+                @input=${(e: InputEvent) => { this.reviewTarget = (e.target as HTMLInputElement).value; }}
+                ?error=${!this.validReviewTarget}
               >
-                <input ?error=${!this.validReviewTarget}>
-              </iron-input>
               <gr-button
                 @click=${this.updateReviewTarget}
                 ?disabled=${this.reviewTarget == this.followVersion}
@@ -214,16 +208,11 @@ export class SelectReviewTargetDialog extends LitElement {
                   Review-Files
                 </gr-tooltip-content>
               </span>
-              <iron-input
-                .bindValue=${this.reviewFiles}
-                @bind-value-changed=${(e: BindValueChangeEvent) => {
-                  if (e.detail.value) {
-                    this.reviewFiles = e.detail.value;
-                  }
-                }}
-              >
-                <textarea id="reviewfiles"></textarea>
-              </iron-input>
+              <textarea
+                id="reviewfiles"
+                .value=${this.reviewFiles}
+                @input=${(e: InputEvent) => { this.reviewFiles = (e.target as HTMLTextAreaElement).value; }}
+              ></textarea>
             </section>
             ${this._renderChangedPaths(
               "To be added",
