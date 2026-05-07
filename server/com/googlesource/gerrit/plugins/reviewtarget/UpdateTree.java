@@ -295,16 +295,12 @@ class UpdateTree implements AutoCloseable {
   public int createPatchSet(
         CurrentUser user, String reviewTargetFooter, String reviewFilesFooter, ChangeNotes notes
   ) throws IOException, ConfigInvalidException, UpdateException, RestApiException {
-    logger.atInfo().log("createPatchSet()");
     String currentMessage = current.getFullMessage();
-    logger.atInfo().log("createPatchSet currentMessage=%s", currentMessage);
     String message = getUpdatedMessage(currentMessage, reviewTargetFooter, reviewFilesFooter);
-    logger.atInfo().log("createPatchSet message=%s", message);
     boolean sameMsg = message.equals(currentMessage);
     boolean sameTree = !treeChanged;
     boolean sameParent = !parentChanged;
-
-    logger.atInfo().log("createPatchSet sameMsg=%s sameTree=%s sameParent=%s", sameMsg, sameTree, sameParent);
+    logger.atFine().log("createPatchSet sameMsg=%s sameTree=%s sameParent=%s", sameMsg, sameTree, sameParent);
     if (sameMsg && sameTree && sameParent) {
       return 0;
     }

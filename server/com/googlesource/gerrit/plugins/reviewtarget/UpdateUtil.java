@@ -165,7 +165,7 @@ class UpdateUtil {
     builder.append(patchSetMsg);
     String message = builder.toString();
 
-    logger.atInfo().log("about to create new patchSet %s: msg: %s desc: %s", psId.get(), patchSetMsg, patchSetDesc);
+    logger.atFine().log("creating patchSet %s: msg=%s desc=%s", psId.get(), patchSetMsg, patchSetDesc);
     PatchSetInserter patchSet =
         patchSetInserterFactory
             .create(notes, psId, updated)
@@ -177,10 +177,9 @@ class UpdateUtil {
       bu.setRepository(repo, rw, inserter);
       bu.setNotify(notifyResolver.resolve(NotifyHandling.ALL, null));
       bu.addOp(change.getId(), patchSet);
-      logger.atInfo().log("BatchUpdate.execute()");
       bu.execute();
     }
-    logger.atInfo().log("new patchSet: %s", patchSetMsg);
+    logger.atFine().log("created patchSet %s", psId.get());
 
     return psId.get();
   }
