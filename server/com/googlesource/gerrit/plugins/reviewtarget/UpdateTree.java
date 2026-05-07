@@ -142,15 +142,6 @@ class UpdateTree implements AutoCloseable {
     reviewFilter = new ReviewFilter(lines);
   }
 
-  /**
-   * populate `reviewFiles` based on the commit message.
-   */
-  public void useReviewFilesFooter(String footerName) {
-    List<String> lines = current.getFooterLines(footerName);
-    reviewFiles = String.join("\n", lines);
-    reviewFilter = new ReviewFilter(lines);
-  }
-
   public String getReviewFiles() {
     return reviewFiles;
   }
@@ -162,7 +153,9 @@ class UpdateTree implements AutoCloseable {
       ObjectId baseId = rebaseUtil.findBaseRevision(patchset, branch, repo, rw, true);
       newParent = rw.parseCommit(baseId);
       parentChanged = true;
-    } catch (RestApiException e) {}
+    } catch (RestApiException e) {
+      // no rebase possible
+    }
   }
 
   boolean isRebased() {
@@ -235,7 +228,7 @@ class UpdateTree implements AutoCloseable {
   /**
    * Walk all paths and TBD
    */
-  void getChangedPaths(List<String> added, List<String> updated, List<String> removed) throws IOException {
+  void getChangedPaths(List<String> added, List<String> updated, List<String> removed) throws IOException, RestApiException {
     current = UpdateUtil.getCurrentCommit(repo, rw, change);
     RevCommit oldParent = rw.parseCommit(current.getParent(0));
 
@@ -306,12 +299,16 @@ class UpdateTree implements AutoCloseable {
   public int createPatchSet(
         CurrentUser user, String reviewTargetFooter, String reviewFilesFooter, ChangeNotes notes
   ) throws IOException, ConfigInvalidException, UpdateException, RestApiException {
+    logger.atInfo().log("createPatchSet()");
     String currentMessage = current.getFullMessage();
+    logger.atInfo().log("createPatchSet currentMessage=%s", currentMessage);
     String message = getUpdatedMessage(currentMessage, reviewTargetFooter, reviewFilesFooter);
+    logger.atInfo().log("createPatchSet message=%s", message);
     boolean sameMsg = message.equals(currentMessage);
     boolean sameTree = !treeChanged;
     boolean sameParent = !parentChanged;
 
+    logger.atInfo().log("createPatchSet sameMsg=%s sameTree=%s sameParent=%s", sameMsg, sameTree, sameParent);
     if (sameMsg && sameTree && sameParent) {
       return 0;
     }

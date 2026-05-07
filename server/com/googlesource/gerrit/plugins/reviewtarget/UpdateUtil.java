@@ -165,6 +165,7 @@ class UpdateUtil {
     builder.append(patchSetMsg);
     String message = builder.toString();
 
+    logger.atInfo().log("about to create new patchSet %s: msg: %s desc: %s", psId.get(), patchSetMsg, patchSetDesc);
     PatchSetInserter patchSet =
         patchSetInserterFactory
             .create(notes, psId, updated)
@@ -176,6 +177,7 @@ class UpdateUtil {
       bu.setRepository(repo, rw, inserter);
       bu.setNotify(notifyResolver.resolve(NotifyHandling.ALL, null));
       bu.addOp(change.getId(), patchSet);
+      logger.atInfo().log("BatchUpdate.execute()");
       bu.execute();
     }
     logger.atInfo().log("new patchSet: %s", patchSetMsg);
@@ -183,11 +185,10 @@ class UpdateUtil {
     return psId.get();
   }
 
-  @Nullable
-  public static RevCommit getCurrentCommit(Repository repo, RevWalk rw, Change change) throws IOException {
+  public static RevCommit getCurrentCommit(Repository repo, RevWalk rw, Change change) throws IOException, RestApiException {
     PatchSet.Id id = change.currentPatchSetId();
     if (id == null) {
-      return null;
+      throw new UnprocessableEntityException("change must have a current patchset");
     }
     return rw.parseCommit(repo.exactRef(id.toRefName()).getObjectId());
   }

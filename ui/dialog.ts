@@ -16,7 +16,7 @@
  */
 
 import {css, CSSResult, html, LitElement, PropertyValues} from 'lit';
-import {customElement, property, state} from 'lit/decorators';
+import {customElement, property, state} from 'lit/decorators.js';
 
 import {PluginApi} from '@gerritcodereview/typescript-api/plugin';
 import {PopupPluginApi} from '@gerritcodereview/typescript-api/popup';

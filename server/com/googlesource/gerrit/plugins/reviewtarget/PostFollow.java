@@ -84,7 +84,7 @@ class PostFollow implements RestModifyView<ChangeResource, Input> {
     preconditions.assertCanChangeReviewTarget(rsrc);
 
     Change change = rsrc.getChange();
-    logger.atFine().log("FollowMe POST id=%s doUpdate=%s newReviewTarget=%s", change.getId(), input.doUpdate, input.newReviewTarget);
+    logger.atInfo().log("FollowMe POST id=%s doUpdate=%s newReviewTarget=%s", change.getId(), input.doUpdate, input.newReviewTarget);
 
     CurrentUser user = rsrc.getUser();
     FollowInfo resp = new FollowInfo();
@@ -120,6 +120,7 @@ class PostFollow implements RestModifyView<ChangeResource, Input> {
       resp.version = update.getTargetVersion(cfg.getVersionPrefix(), cfg.getVersionDropPrefix());
 
       if (input.doUpdate) {
+        logger.atInfo().log("FollowMe doUpdate");
         resp.newPatchsetId = update.createPatchSet(user, cfg.getReviewTargetFooter(), cfg.getReviewFilesFooter(), rsrc.getNotes());
       }
     }
