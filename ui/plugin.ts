@@ -16,25 +16,61 @@
  */
 import '@gerritcodereview/typescript-api/gerrit';
 import {EventType} from '@gerritcodereview/typescript-api/plugin';
+import {ChangeUpdatesPublisher} from '@gerritcodereview/typescript-api/change-updates';
 import {ChangeInfo, RevisionInfo} from '@gerritcodereview/typescript-api/rest-api';
 import {ActionType} from '@gerritcodereview/typescript-api/change-actions';
 
-import {changeFollowGet} from './api';
+import {changeFollowGet, changeFollowGetById} from './api';
 import {SelectReviewTargetDialog} from './dialog';
 
+const POLL_INTERVAL_MS = 5 * 60 * 1000;
 
 window.Gerrit.install(plugin => {
   const restApi = plugin.restApi();
   var selectAction: string | null;
-//  const reporting = plugin.reporting();
+
+  // Track the follow_version seen at page load so we can detect branch advances.
+  let knownFollowVersion: string | null = null;
+
+  let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+  const publisher: ChangeUpdatesPublisher = {
+    subscribe(_repo: string, changeNum: number, callback: () => void) {
+      if (pollTimer !== null) clearInterval(pollTimer);
+      pollTimer = setInterval(async () => {
+        if (knownFollowVersion === null) return;
+        try {
+          const info = await changeFollowGetById(restApi, changeNum);
+          if (!info.on_review_branch) return;
+          if (info.follow_version !== knownFollowVersion) {
+            callback();
+          }
+        } catch (_e) {
+          // ignore transient errors
+        }
+      }, POLL_INTERVAL_MS);
+    },
+    unsubscribe() {
+      if (pollTimer !== null) {
+        clearInterval(pollTimer);
+        pollTimer = null;
+      }
+      knownFollowVersion = null;
+    },
+  };
+
+  plugin.changeUpdates().register(publisher);
 
   plugin.on(EventType.SHOW_CHANGE, async (change: ChangeInfo, _revision: RevisionInfo, _mergeable: boolean) => {
     if (change.id === undefined) return;
     const info = await changeFollowGet(restApi, change);
     if (!info.on_review_branch) {
       // this change is not managed by our plugin
+      knownFollowVersion = null;
       return;
     }
+    knownFollowVersion = info.follow_version;
+
     var actions = plugin.changeActions();
     if (selectAction != null) {
       actions.remove(selectAction);

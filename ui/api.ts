@@ -34,7 +34,11 @@ export declare interface FollowInfo {
 }
 
 export async function changeFollowGet(restApi: RestPluginApi, change: ChangeInfo): Promise<FollowInfo> {
-  const endpoint = `/changes/${change.id}/follow`;
+  return changeFollowGetById(restApi, change.id);
+}
+
+export async function changeFollowGetById(restApi: RestPluginApi, changeId: string | number): Promise<FollowInfo> {
+  const endpoint = `/changes/${changeId}/follow`;
   const resp = await restApi.get<FollowInfo>(endpoint)
   console.debug("success GET", endpoint, resp);
   return resp;
