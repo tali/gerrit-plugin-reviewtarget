@@ -99,7 +99,7 @@ class UpdateTree implements AutoCloseable {
    */
   public void useChange(Change change) throws RestApiException, IOException {
     this.change = requireNonNull(change);
-    current = UpdateUtil.getCurrentCommit(repo, rw, change);
+    current = updateUtil.getCurrentCommit(repo, rw, change);
     if (current.getParentCount() != 1) {
       throw new UnprocessableEntityException("change must have a single parent");
     }
@@ -225,11 +225,7 @@ class UpdateTree implements AutoCloseable {
     RevTree currentTree = rw.parseTree(current.getTree());
     return this.updatedTree.equals(currentTree);
   }
-  /**
-   * Walk all paths and TBD
-   */
-  void getChangedPaths(List<String> added, List<String> updated, List<String> removed) throws IOException, RestApiException {
-    current = UpdateUtil.getCurrentCommit(repo, rw, change);
+  void getChangedPaths(List<String> added, List<String> updated, List<String> removed) throws IOException {
     RevCommit oldParent = rw.parseCommit(current.getParent(0));
 
     RevTree currentTree = rw.parseTree(current.getTree());

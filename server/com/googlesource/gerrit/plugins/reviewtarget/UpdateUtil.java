@@ -67,11 +67,11 @@ class UpdateUtil {
   }
 
   RevCommit getReferenceCommit(Repository repo, RevWalk rw, String refName) throws IOException {
-    Ref refRef = repo.findRef(refName);
-    if (refRef == null)
+    Ref ref = repo.findRef(refName);
+    if (ref == null)
       return null;
 
-    ObjectId refId = repo.findRef(refName).getObjectId();
+    ObjectId refId = ref.getObjectId();
     if (refId == null)
       return null;
 
@@ -185,7 +185,7 @@ class UpdateUtil {
     return psId.get();
   }
 
-  public static RevCommit getCurrentCommit(Repository repo, RevWalk rw, Change change) throws IOException, RestApiException {
+  public RevCommit getCurrentCommit(Repository repo, RevWalk rw, Change change) throws IOException, RestApiException {
     PatchSet.Id id = change.currentPatchSetId();
     if (id == null) {
       throw new UnprocessableEntityException("change must have a current patchset");
