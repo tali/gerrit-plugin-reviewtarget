@@ -189,6 +189,10 @@ class UpdateUtil {
     if (id == null) {
       throw new UnprocessableEntityException("change must have a current patchset");
     }
-    return rw.parseCommit(repo.exactRef(id.toRefName()).getObjectId());
+    Ref ref = repo.exactRef(id.toRefName());
+    if (ref == null) {
+      throw new UnprocessableEntityException("patchset ref not found: " + id.toRefName());
+    }
+    return rw.parseCommit(ref.getObjectId());
   }
 }
