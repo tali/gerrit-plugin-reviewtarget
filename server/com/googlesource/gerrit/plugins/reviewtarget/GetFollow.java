@@ -16,7 +16,6 @@ package com.googlesource.gerrit.plugins.reviewtarget;
 
 import com.google.common.flogger.FluentLogger;
 import com.google.gerrit.entities.Change;
-import com.google.gerrit.extensions.restapi.ResourceConflictException;
 import com.google.gerrit.extensions.restapi.Response;
 import com.google.gerrit.extensions.restapi.RestApiException;
 import com.google.gerrit.extensions.restapi.RestReadView;
@@ -72,14 +71,16 @@ class GetFollow implements RestReadView<ChangeResource> {
 
   @Override
   public Response<FollowInfo> apply(ChangeResource rsrc) throws IOException, RestApiException, ConfigInvalidException, UpdateException {
-    preconditions.assertAddPatchSetPermission(rsrc);
-    preconditions.assertCanChangeReviewTarget(rsrc);
+    FollowInfo resp = new FollowInfo();
+
+    if (!preconditions.canAddPatchSet(rsrc) || !preconditions.onReviewBranch(rsrc.getChange())) {
+      return Response.ok(resp);
+    }
 
     Change change = rsrc.getChange();
-    FollowInfo resp = new FollowInfo();
     resp.onReviewBranch = true;
 
-    logger.atFine().log("FollowMe GET id=%s key=%s", change.getId(), change.getKey());
+    logger.atFine().log("follow GET id=%s key=%s", change.getId(), change.getKey());
 
     try (
         Repository repo = gitManager.openRepository(change.getProject());
