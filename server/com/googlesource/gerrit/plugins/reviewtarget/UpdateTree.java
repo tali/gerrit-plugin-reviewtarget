@@ -170,6 +170,7 @@ class UpdateTree implements AutoCloseable {
     if (reviewFilter.matchAll()) {
       // Without a Review-Files specification, use the whole Review-Target
       this.updatedTree = targetTree;
+      this.treeChanged = !targetTree.equals(current.getTree());
       return;
     }
 
