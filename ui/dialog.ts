@@ -175,7 +175,7 @@ export class SelectReviewTargetDialog extends LitElement {
         @cancel=${this.handleCancelTap}
       >
         <div class="header" slot="header">Select contents of review</div>
-        <div class=main" slot="main">
+        <div class="main" slot="main">
 
           <div class="gr-form-styles">
             <section>
