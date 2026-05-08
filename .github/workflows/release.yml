@@ -29,6 +29,9 @@ jobs:
           path: gerrit
           filter: blob:none
 
+      - name: Initialize Gerrit submodules
+        run: git -C gerrit submodule update --init --depth 1
+
       - name: Place plugin in Gerrit tree
         run: |
           mv plugin gerrit/plugins/reviewtarget
