@@ -15,9 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: plugin
-
-      - name: Fetch plugin tag objects
-        run: git -C plugin fetch origin --force --tags
+          fetch-depth: 0
 
       - name: Read Gerrit branch
         id: gerrit
