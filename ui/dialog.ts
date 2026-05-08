@@ -65,6 +65,9 @@ export class SelectReviewTargetDialog extends LitElement {
   @state() rebaseRequired = false;
   @state() validReviewTarget = false;
 
+  private _skipNextDebounce = false;
+  private _debounceTimer: ReturnType<typeof setTimeout> | null = null;
+
   static override styles = [
     window.Gerrit.styles.form as CSSResult,
     css`
@@ -89,6 +92,15 @@ export class SelectReviewTargetDialog extends LitElement {
         display: flex;
         flex-direction: column;
         width: 100%;
+      }
+      .input-row {
+        display: flex;
+        align-items: center;
+      }
+      .version-info {
+        font-size: var(--font-size-small, 12px);
+        color: var(--deemphasized-text-color);
+        padding-top: 2px;
       }
     `
   ];
@@ -178,40 +190,47 @@ export class SelectReviewTargetDialog extends LitElement {
 
           <div class="gr-form-styles">
             <section>
-              <span class="title">
+              <label class="title" for="reviewtarget">
                 <gr-tooltip-content
                   has-tooltip
                   title="Select the version which is to be reviewed"
                 >
                   Review-Target
                 </gr-tooltip-content>
-              </span>
-              <input
-                .value=${this.reviewTarget}
-                @input=${(e: InputEvent) => { this.reviewTarget = (e.target as HTMLInputElement).value; }}
-                ?error=${!this.validReviewTarget}
-              >
-              <gr-button
-                @click=${this.updateReviewTarget}
-                ?disabled=${this.reviewTarget == this.followVersion}
-                title="Update to ${this.followVersion} on ${this.followBranch}."
-              >
-                <gr-icon icon="update"></gr-icon>
-              </gr-button>
+              </label>
+              <div>
+                <div class="input-row">
+                  <input
+                    id="reviewtarget"
+                    .value=${this.reviewTarget}
+                    @input=${(e: InputEvent) => { this.reviewTarget = (e.target as HTMLInputElement).value; }}
+                    ?error=${!this.validReviewTarget}
+                  >
+                  <gr-button
+                    @click=${this.updateReviewTarget}
+                    ?disabled=${this.reviewTarget == this.followVersion}
+                    title="Update to ${this.followVersion} on ${this.followBranch}."
+                  >
+                    <gr-icon icon="update"></gr-icon>
+                  </gr-button>
+                </div>
+                <div class="version-info">${this.version}</div>
+              </div>
             </section>
             <section>
-              <span class="title">
+              <label class="title" for="reviewfiles">
                 <gr-tooltip-content
                   has-tooltip
                   title="Select which files are to be reviewed. Use multiple lines to add multiple patterns. Use '*' and '**' just as in GIT .ignore rules."
                 >
                   Review-Files
                 </gr-tooltip-content>
-              </span>
+              </label>
               <textarea
                 id="reviewfiles"
                 .value=${this.reviewFiles}
                 @input=${(e: InputEvent) => { this.reviewFiles = (e.target as HTMLTextAreaElement).value; }}
+                placeholder="Leave empty to review all files"
               ></textarea>
             </section>
             ${this._renderChangedPaths(
@@ -242,6 +261,11 @@ export class SelectReviewTargetDialog extends LitElement {
 
   /** read initial properties from the provided REST GET result */
   initialize(info: FollowInfo) {
+    if (this._debounceTimer !== null) {
+      clearTimeout(this._debounceTimer);
+      this._debounceTimer = null;
+    }
+    this._skipNextDebounce = true;
     this.version = info.version;
     this.followBranch = info.follow_branch;
     this.followVersion = info.follow_version;
@@ -280,7 +304,16 @@ export class SelectReviewTargetDialog extends LitElement {
 
   override willUpdate(changedProperties: PropertyValues) {
     if (changedProperties.has('reviewTarget') || changedProperties.has('reviewFiles')) {
-      this.loadPaths();
+      if (this._skipNextDebounce) {
+        this._skipNextDebounce = false;
+        this.loadPaths();
+      } else {
+        if (this._debounceTimer !== null) clearTimeout(this._debounceTimer);
+        this._debounceTimer = setTimeout(() => {
+          this._debounceTimer = null;
+          this.loadPaths();
+        }, 400);
+      }
     }
   }
 

@@ -183,6 +183,54 @@ suite('gr-select-reviewtarget-dialog', () => {
   });
 
   // ---------------------------------------------------------------------------
+  // Version display
+  // ---------------------------------------------------------------------------
+
+  suite('version display', () => {
+    test('shows version returned by the server', async () => {
+      postStub.resolves(makeFollowInfo({version: 'v1.2.3'}));
+      await init();
+      const versionDiv = element.shadowRoot!.querySelector<HTMLElement>('.version-info');
+      assert.include(versionDiv?.textContent, 'v1.2.3');
+    });
+
+    test('updates when re-initialized with a target that resolves differently', async () => {
+      await init();
+      postStub.resolves(makeFollowInfo({version: 'v2.0.0'}));
+      await init({review_target: 'refs/tags/v2'});
+      const versionDiv = element.shadowRoot!.querySelector<HTMLElement>('.version-info');
+      assert.include(versionDiv?.textContent, 'v2.0.0');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Debounce
+  // ---------------------------------------------------------------------------
+
+  suite('debounce', () => {
+    test('initialize bypasses debounce and calls REST immediately', async () => {
+      const callsBefore = postStub.callCount;
+      element.initialize(makeFollowInfo());
+      await element.updateComplete;
+      await element.updateComplete;
+      // loadPaths should have fired exactly once (no timer delay)
+      assert.equal(postStub.callCount, callsBefore + 1);
+    });
+
+    test('rapid input changes result in only one pending call', async () => {
+      await init();
+      const callsBefore = postStub.callCount;
+      // Simulate rapid typing — each assignment triggers willUpdate
+      element.reviewTarget = 'refs/tags/v1';
+      element.reviewTarget = 'refs/tags/v1.';
+      element.reviewTarget = 'refs/tags/v1.2';
+      await element.updateComplete;
+      // The debounce timer is pending; loadPaths has not been called yet
+      assert.equal(postStub.callCount, callsBefore);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // Conditional path sections
   // ---------------------------------------------------------------------------
 
