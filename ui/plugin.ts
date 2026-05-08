@@ -61,17 +61,10 @@ window.Gerrit.install(plugin => {
 
   plugin.changeUpdates().register(publisher);
 
-  plugin.on(EventType.SHOW_CHANGE, async (change: ChangeInfo, _revision: RevisionInfo, _mergeable: boolean) => {
-    if (change.id === undefined) return;
-    const info = await changeFollowGet(restApi, change);
-    if (!info.on_review_branch) {
-      // this change is not managed by our plugin
-      knownFollowVersion = null;
-      return;
-    }
-    knownFollowVersion = info.follow_version;
+  let lastManagedChangeId: string | null = null;
 
-    var actions = plugin.changeActions();
+  function applyActions(change: ChangeInfo) {
+    const actions = plugin.changeActions();
     if (selectAction != null) {
       actions.remove(selectAction);
     }
@@ -81,6 +74,7 @@ window.Gerrit.install(plugin => {
     actions.setTitle(selectAction, `Change Review-Target or Review-Files`);
     actions.setIcon(selectAction, "rule");
     actions.addTapListener(selectAction, async () => {
+      const info = await changeFollowGet(restApi, change);
       const popupApi = await plugin.popup();
       const openDialog = await popupApi.open();
       var dialog = new SelectReviewTargetDialog();
@@ -94,5 +88,29 @@ window.Gerrit.install(plugin => {
     actions.setActionHidden(ActionType.CHANGE, 'edit', true);
     actions.setActionHidden(ActionType.CHANGE, 'rebase', true);
     actions.setActionHidden(ActionType.REVISION, 'cherrypick', true);
+  }
+
+  plugin.on(EventType.SHOW_CHANGE, async (change: ChangeInfo, _revision: RevisionInfo, _mergeable: boolean) => {
+    if (change.id === undefined) return;
+    const info = await changeFollowGet(restApi, change);
+    if (!info.on_review_branch) {
+      // this change is not managed by our plugin
+      knownFollowVersion = null;
+      lastManagedChangeId = null;
+      return;
+    }
+    knownFollowVersion = info.follow_version;
+    lastManagedChangeId = change.id;
+    applyActions(change);
+  });
+
+  // gr-change-actions resets additionalActions and hiddenActions when the user
+  // navigates back from a diff view without a full page reload. SHOW_CHANGE does
+  // not re-fire in that case because the change model serves cached data, but
+  // SHOW_REVISION_ACTIONS always fires after gr-change-actions.reload().
+  plugin.on(EventType.SHOW_REVISION_ACTIONS, (_revisionActions: unknown, change: ChangeInfo) => {
+    if (knownFollowVersion === null) return;
+    if (change.id !== lastManagedChangeId) return;
+    applyActions(change);
   });
 });
