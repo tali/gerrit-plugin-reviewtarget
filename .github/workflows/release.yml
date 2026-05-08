@@ -16,7 +16,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: plugin
-          fetch-depth: 0
+
+      - name: Fetch full history and tags
+        run: git -C plugin fetch --unshallow --tags --force
 
       - name: Read Gerrit branch
         id: gerrit
