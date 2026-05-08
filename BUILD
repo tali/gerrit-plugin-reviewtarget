@@ -9,6 +9,7 @@ gerrit_plugin(
         "Gerrit-PluginName: reviewtarget",
         "Gerrit-Module: com.googlesource.gerrit.plugins.reviewtarget.PluginModule",
         "Gerrit-HttpModule: com.googlesource.gerrit.plugins.reviewtarget.HttpModule",
+        "Gerrit-BatchModule: com.googlesource.gerrit.plugins.reviewtarget.BatchModule",
         "Implementation-Title: Post-Commit review by following a target branch",
     ],
     resource_jars = ["//plugins/reviewtarget/ui:reviewtarget"],
