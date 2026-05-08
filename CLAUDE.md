@@ -85,3 +85,10 @@ Flow: `SHOW_CHANGE` fires → GET → stores info → `applyActions()` adds the 
 `.github/workflows/release.yml` — runs on `v*` tags; same steps plus creates a GitHub Release.
 
 Both workflows check out Gerrit at the version in `GERRIT_VERSION`, patch `tools/bzl/plugins.bzl` via Python, and build inside that tree. Only `modules/jgit` and `modules/java-prettify` submodules are initialised (other plugin submodules use Gerrit-internal URLs that are inaccessible externally).
+
+Release tags must be **annotated** (not lightweight) so that `git describe` resolves the tag name into `Implementation-Version` in the JAR manifest. Include a short changelog in the tag message:
+```sh
+git tag -a v1.2.3 -m "v1.2.3
+
+- summary of changes since previous release"
+```
