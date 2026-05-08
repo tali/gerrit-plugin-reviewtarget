@@ -20,7 +20,7 @@ import {ChangeUpdatesPublisher} from '@gerritcodereview/typescript-api/change-up
 import {ChangeInfo, RevisionInfo} from '@gerritcodereview/typescript-api/rest-api';
 import {ActionType} from '@gerritcodereview/typescript-api/change-actions';
 
-import {changeFollowGet, changeFollowGetById} from './api';
+import {changeFollowGet, changeFollowGetById, FollowInfo} from './api';
 import {SelectReviewTargetDialog} from './dialog';
 
 const POLL_INTERVAL_MS = 5 * 60 * 1000;
@@ -33,6 +33,8 @@ window.Gerrit.install(plugin => {
   let knownFollowVersion: string | null = null;
 
   let pollTimer: ReturnType<typeof setInterval> | null = null;
+
+  let currentFollowInfo: FollowInfo | null = null;
 
   const publisher: ChangeUpdatesPublisher = {
     subscribe(_repo: string, changeNum: number, callback: () => void) {
@@ -74,11 +76,11 @@ window.Gerrit.install(plugin => {
     actions.setTitle(selectAction, `Change Review-Target or Review-Files`);
     actions.setIcon(selectAction, "rule");
     actions.addTapListener(selectAction, async () => {
-      const info = await changeFollowGet(restApi, change);
+      if (!currentFollowInfo) return;
       const popupApi = await plugin.popup();
       const openDialog = await popupApi.open();
       var dialog = new SelectReviewTargetDialog();
-      dialog.initialize(info);
+      dialog.initialize(currentFollowInfo);
       dialog.plugin = plugin;
       dialog.change = change;
       dialog.popupApi = popupApi;
@@ -97,10 +99,12 @@ window.Gerrit.install(plugin => {
       // this change is not managed by our plugin
       knownFollowVersion = null;
       lastManagedChangeId = null;
+      currentFollowInfo = null;
       return;
     }
     knownFollowVersion = info.follow_version;
     lastManagedChangeId = change.id;
+    currentFollowInfo = info;
     applyActions(change);
   });
 

@@ -186,16 +186,14 @@ suite('plugin', () => {
   // ---------------------------------------------------------------------------
 
   suite('tap listener', () => {
-    test('fetches fresh info from the server when the dialog is opened', async () => {
+    test('opens the dialog without an extra GET request', async () => {
       await showChange(managedChange);
-      // Capture tapFn before resetting history (firstCall becomes null after reset).
       const tapFn: Function = addTapListenerStub.firstCall.args[1];
       sandbox.resetHistory();
-      getStub.resolves(makeFollowInfo({version: 'v-fresh'}));
 
       await tapFn();
 
-      assert.isTrue(getStub.calledOnce, 'dialog open should trigger a GET request');
+      assert.isFalse(getStub.called, 'dialog open should not trigger an extra GET request');
     });
   });
 });
