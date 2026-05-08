@@ -27,7 +27,7 @@ jobs:
           filter: blob:none
 
       - name: Initialize Gerrit submodules
-        run: git -C gerrit submodule update --init --depth 1
+        run: git -C gerrit submodule update --init --depth 1 -- modules/jgit modules/java-prettify
 
       - name: Place plugin in Gerrit tree
         run: |
