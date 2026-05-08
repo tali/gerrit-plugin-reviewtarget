@@ -57,7 +57,7 @@ jobs:
       - name: Cache Bazel
         uses: actions/cache@v4
         with:
-          path: ~/.cache/bazel
+          path: ~/.gerritcodereview/bazel-cache
           key: ${{ runner.os }}-bazel-${{ steps.gerrit.outputs.branch }}-${{ hashFiles('gerrit/WORKSPACE', 'gerrit/plugins/reviewtarget/BUILD', 'gerrit/plugins/reviewtarget/ui/BUILD') }}
           restore-keys: |
             ${{ runner.os }}-bazel-${{ steps.gerrit.outputs.branch }}-
