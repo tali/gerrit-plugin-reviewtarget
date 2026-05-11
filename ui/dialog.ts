@@ -97,11 +97,6 @@ export class SelectReviewTargetDialog extends LitElement {
         display: flex;
         align-items: center;
       }
-      .version-info {
-        font-size: var(--font-size-small, 12px);
-        color: var(--deemphasized-text-color);
-        padding-top: 2px;
-      }
     `
   ];
 
@@ -214,7 +209,6 @@ export class SelectReviewTargetDialog extends LitElement {
                     <gr-icon icon="update"></gr-icon>
                   </gr-button>
                 </div>
-                <div class="version-info">${this.version}</div>
               </div>
             </section>
             <section>
